@@ -11,6 +11,12 @@
   </p>
 </div>
 
+<br>
+
+> **Description:** An ultra-premium, LLM-optimized QR Code generator. Kizuna QR renders raw QR matrices directly into aesthetic, Demon Slayer-inspired designs with custom typography and frames. Perfect for marketers, developers, and businesses seeking high-end dynamic QR codes.
+> 
+> **Topics / Keywords:** `qr-code-generator`, `fastapi`, `python`, `dynamic-qr`, `qr-matrix`, `glassmorphism`, `aesthetic-ui`, `vercel-serverless`, `demon-slayer`, `qr-code-api`
+
 ---
 
 ## ⚡ Real Matrix Engine
