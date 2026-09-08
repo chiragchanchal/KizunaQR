@@ -251,12 +251,12 @@ def render_qr(content, scheme="hinokami", fg=None, bg=None, round_mods=False,
             
             if frame == "scan_me":
                 fd.rounded_rectangle([pad, pad, framed_size - pad, framed_size - pad], radius=margin//2, outline=_fg, width=bw)
-                banner_h = int(margin * 0.8)
+                banner_h = int(margin * 1.2)
                 text_to_draw = text if text and text.strip() else "SCAN ME"
                 
                 try:
                     from PIL import ImageFont
-                    font_size = int(banner_h * 0.6)
+                    font_size = int(banner_h * 0.75)
                     while True:
                         try:
                             font = ImageFont.truetype("arial.ttf", size=font_size)
@@ -399,7 +399,7 @@ def _draw_custom_text(img, text, text_font, text_pos, text_theme, core_size, fg,
     font_filename = font_files.get(text_font, "arial.ttf")
     
     w, h = img.size
-    fontsize = max(36, int(core_size * 0.11))
+    fontsize = max(48, int(core_size * 0.16))
     
     while True:
         try:
