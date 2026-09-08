@@ -770,12 +770,23 @@
         const timeLocation = gl.getUniformLocation(program, "u_time");
 
         let startTime = Date.now();
+        let isVisible = true;
+        let animationId;
+        
+        document.addEventListener("visibilitychange", () => {
+            isVisible = document.visibilityState === 'visible';
+            if (isVisible) render();
+        });
+
         function render() {
+            cancelAnimationFrame(animationId);
+            if (!isVisible) return;
+            
             gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
             gl.uniform1f(timeLocation, (Date.now() - startTime) / 1000.0);
             
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-            requestAnimationFrame(render);
+            animationId = requestAnimationFrame(render);
         }
         render();
     }
@@ -870,7 +881,26 @@
     }
   }
 
+  let isVisible = true;
+  let animationId;
+  
+  document.addEventListener("visibilitychange", () => {
+      isVisible = document.visibilityState === 'visible';
+      if (isVisible) animateParticles();
+  });
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        isVisible = entry.isIntersecting && document.visibilityState === 'visible';
+        if (isVisible) animateParticles();
+    });
+  });
+  observer.observe(canvas);
+
   function animateParticles() {
+    cancelAnimationFrame(animationId);
+    if (!isVisible) return;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const dpr = window.devicePixelRatio || 1;
     const mRadius = mouse.radius * dpr;
@@ -904,7 +934,7 @@
       ctx.fillRect(p.x, p.y, p.size, p.size);
     }
     
-    requestAnimationFrame(animateParticles);
+    animationId = requestAnimationFrame(animateParticles);
   }
 
   let resizeTimeout;
