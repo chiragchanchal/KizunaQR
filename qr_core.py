@@ -73,6 +73,9 @@ def render_qr(content, scheme="hinokami", fg=None, bg=None, round_mods=False,
     """
     if not content or not str(content).strip():
         raise ValueError("content is empty")
+        
+    if frame == "scan_me":
+        text_pos = "none"
 
     ec_map = {"H": constants.ERROR_CORRECT_H, "Q": constants.ERROR_CORRECT_Q}
     if ec not in ec_map:
