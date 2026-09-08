@@ -342,11 +342,11 @@
               <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Placement Position</label>
               <div class="grid grid-cols-2 gap-2 bg-[#101014] p-1.5 rounded-xl border border-white/5">
                 <label class="relative flex items-center justify-center cursor-pointer group">
-                  <input type="radio" name="textPos" value="none" checked class="peer sr-only">
-                  <div class="w-full text-center py-2 rounded-lg text-xs font-body-md text-white/50 peer-checked:bg-white/10 peer-checked:text-white peer-checked:shadow-sm transition-all group-hover:text-white/80">Default</div>
+                  <input type="radio" name="textPos" value="none" class="peer sr-only">
+                  <div class="w-full text-center py-2 rounded-lg text-xs font-body-md text-white/50 peer-checked:bg-white/10 peer-checked:text-white peer-checked:shadow-sm transition-all group-hover:text-white/80">Hidden</div>
                 </label>
                 <label class="relative flex items-center justify-center cursor-pointer group">
-                  <input type="radio" name="textPos" value="bottom" class="peer sr-only">
+                  <input type="radio" name="textPos" value="bottom" checked class="peer sr-only">
                   <div class="w-full text-center py-2 rounded-lg text-xs font-body-md text-white/50 peer-checked:bg-white/10 peer-checked:text-white peer-checked:shadow-sm transition-all group-hover:text-white/80">Footer</div>
                 </label>
                 <label class="relative flex items-center justify-center cursor-pointer group">
@@ -503,6 +503,29 @@
   }
   preset.addEventListener('change', syncPresetUI);
   syncPresetUI();
+
+  function syncTypographyUI() {
+    const isScanMe = frameStyle.value === 'scan_me';
+    const isTextEmpty = customText.value.trim() === '';
+    
+    const textPosInputs = document.querySelectorAll('input[name="textPos"]');
+    textPosInputs.forEach(input => {
+      let shouldDisable = isScanMe;
+      if (isTextEmpty && input.value === 'none') {
+        shouldDisable = true;
+      }
+      
+      input.disabled = shouldDisable;
+      if (shouldDisable) {
+        input.parentElement.classList.add('opacity-50', 'pointer-events-none');
+      } else {
+        input.parentElement.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    });
+  }
+  frameStyle.addEventListener('change', syncTypographyUI);
+  customText.addEventListener('input', syncTypographyUI);
+  syncTypographyUI();
 
   let emblemDataUrl = null;
   emblem.addEventListener('change', () => {
