@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "kizuna",
+      "runtimeExecutable": "C:/Users/ASUS/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0/python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "app:app", "--port", "8105"],
+      "port": 8105
+    }
+  ]
+}

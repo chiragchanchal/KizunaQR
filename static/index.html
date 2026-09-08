@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Kizuna QR</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;800;900&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/threeui.css">
+  
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "primary": "#ffffff",
+            "on-primary": "#2f3131",
+            "surface-dim": "#141313",
+            "surface-variant": "#353434",
+            "on-surface-variant": "#c4c7c8",
+            "bg-level-0": "#1B2030",
+            "bg-level-1": "#242B3E",
+            "border-subtle": "#323A4F",
+            "err": "#ffb4ab",
+            "err-container": "rgba(255, 180, 171, 0.1)"
+          },
+          "fontFamily": {
+            "code-md": ["Geist"],
+            "headline-md": ["Geist"],
+            "body-md": ["Inter"],
+            "label-sm": ["Geist"]
+          }
+        },
+      },
+    }
+  </script>
+  <style>
+    body {
+        background-color: #1B2030;
+        color: #ffffff;
+        font-family: 'Inter', sans-serif;
+        min-height: max(100vh, 100dvh);
+    }
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    
+    .custom-focus-ring:focus-within {
+        outline: 2px solid #ffffff;
+        outline-offset: 2px;
+        border-color: transparent;
+    }
+
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .accordion-content.expanded {
+        max-height: 400px;
+    }
+    
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .loading .spinner { display: inline-block; }
+    .loading .gen-label { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-region {
+      display: none;
+    }
+    .error-region.show {
+      display: block;
+    }
+    
+    input[type="color"] {
+      -webkit-appearance: none;
+      appearance: none;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+      border: none;
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255, 0.0); }
+      50% { box-shadow: 0 0 20px 0 rgba(255,255,255, 0.1); }
+    }
+    @keyframes shimmer {
+      100% { transform: translateX(100%); }
+    }
+    
+    .glass-panel {
+      background: rgba(10, 10, 12, 0.75);
+      backdrop-filter: blur(24px) saturate(1.2);
+      -webkit-backdrop-filter: blur(24px) saturate(1.2);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body class="antialiased flex flex-col pt-16 pb-20 md:pb-0">
+
+<!-- WebGL Background (Halftone Flow) -->
+<canvas id="glcanvas" class="fixed inset-0 w-full h-full -z-20"></canvas>
+
+<!-- Ultra-Premium TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#0a0a0f]/70 backdrop-blur-2xl flex justify-center items-center px-4 md:px-8 h-16 md:h-20 shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-b border-white/[0.03]">
+  <!-- Animated gradient bottom border glow -->
+  <div class="absolute bottom-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent"></div>
+  
+  <div class="flex items-center gap-3 md:gap-4 group cursor-pointer relative z-10">
+    <!-- Logo with dynamic ambient glow -->
+    <div class="relative flex items-center justify-center">
+      <div class="absolute inset-0 bg-indigo-500/20 rounded-full blur-md group-hover:bg-purple-500/40 group-hover:blur-xl transition-all duration-700"></div>
+      <img src="/static/logo.png" alt="Logo" class="w-8 h-8 md:w-9 md:h-9 object-contain drop-shadow-xl relative z-10 transition-transform duration-500 group-hover:rotate-[15deg] group-hover:scale-110" onerror="this.style.display='none'">
+    </div>
+    
+    <!-- Interactive Particle Wordmark -->
+    <div class="flex items-center">
+      <canvas id="wordmark-canvas" class="cursor-crosshair touch-none select-none block"></canvas>
+      
+      <!-- Studio Badge -->
+      <span class="hidden sm:inline-flex ml-3 items-center justify-center px-2 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-[9px] font-bold text-indigo-300 uppercase tracking-widest shadow-[0_0_10px_rgba(99,102,241,0.2)]">
+        Studio
+      </span>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="flex-grow flex flex-col items-center justify-center p-4 md:p-8 w-full max-w-5xl mx-auto gap-8 mt-4">
+  <div class="w-full flex flex-col md:flex-row gap-8">
+    
+    <!-- Generator Card -->
+    <div class="flex-1 glass-panel border border-white/10 rounded-xl p-6 flex flex-col gap-6 shadow-2xl transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-white/20">
+      
+      <div class="flex flex-col gap-3 relative group z-10">
+        <div class="flex items-center gap-2 px-1">
+          <span class="material-symbols-outlined text-[18px] text-indigo-400">qr_code_2</span>
+          <label class="font-label-sm text-xs text-white/90 uppercase tracking-[0.2em] font-semibold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/50" for="content">Link or Text</label>
+        </div>
+        
+        <div class="relative rounded-2xl p-[1px] bg-gradient-to-b from-white/20 to-white/5 transition-all duration-500 group-focus-within:from-indigo-500/60 group-focus-within:to-purple-500/60 hover:from-white/30 hover:to-white/10 shadow-xl">
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/30 to-purple-500/30 opacity-0 group-focus-within:opacity-100 blur-lg transition-opacity duration-700 -z-10"></div>
+          
+          <div class="relative bg-[#0d0d12]/80 backdrop-blur-2xl rounded-2xl overflow-hidden flex flex-col">
+            <textarea id="content" class="w-full bg-transparent border-none text-white font-body-md text-base p-5 focus:ring-0 resize-none placeholder:text-white/30 transition-colors leading-relaxed" placeholder="Enter a URL, contact info, or any custom text to encode..." rows="3" spellcheck="false"></textarea>
+            
+            <div class="h-10 border-t border-white/5 bg-black/60 flex justify-between items-center px-5">
+              <span class="text-[10px] text-white/50 font-label-sm uppercase tracking-widest flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[14px]">memory</span> Real Matrix Engine
+              </span>
+              <span class="text-[10px] text-white/40 font-code-md">Max 2048 chars</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration Panel -->
+      <div class="flex flex-col gap-6">
+        
+        <!-- SECTION 1: Appearance -->
+        <div class="flex flex-col gap-4 bg-white/[0.02] border border-white/10 rounded-2xl p-5 shadow-inner">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-[16px] text-purple-400">palette</span>
+            <h3 class="font-label-sm text-[11px] text-white/60 uppercase tracking-[0.15em] font-semibold">Appearance</h3>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Palette Dropdown -->
+            <div class="flex flex-col gap-2 relative">
+              <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Color Theme</label>
+              <div class="relative">
+                <select id="preset" class="w-full appearance-none bg-[#101014] border border-white/10 hover:border-white/20 text-white font-body-md text-sm rounded-xl h-11 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer shadow-sm">
+                  <option value="hinokami">Hinokami</option>
+                  <option value="muzan">Muzan</option>
+                  <option value="urokodaki">Urokodaki</option>
+                  <option value="keepsake">Keepsake</option>
+                  <option value="zenitsu">Zenitsu</option>
+                  <option value="inosuke">Inosuke</option>
+                  <option value="rengoku">Rengoku</option>
+                  <option value="tengen">Tengen</option>
+                  <option value="giyu">Giyu</option>
+                  <option value="shinobu">Shinobu</option>
+                  <option value="custom">Custom</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-[18px]">expand_more</span>
+              </div>
+            </div>
+
+            <!-- Frame Dropdown -->
+            <div class="flex flex-col gap-2 relative">
+              <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Border Frame</label>
+              <div class="relative">
+                <select id="frame-style" class="w-full appearance-none bg-[#101014] border border-white/10 hover:border-white/20 text-white font-body-md text-sm rounded-xl h-11 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer shadow-sm">
+                  <option value="none">None</option>
+                  <option value="scan_me">Scan Me Banner</option>
+                  <option value="circular">Circular Ring</option>
+                  <option value="bubble">Speech Bubble</option>
+                  <option value="viewfinder">Camera Viewfinder</option>
+                  <option value="sticker">Scalloped Sticker</option>
+                  <option value="card">Modern Card</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-[18px]">expand_more</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Colors (Hidden by default) -->
+          <div id="customColors" class="grid grid-cols-2 gap-4 hidden pt-2 mt-2 border-t border-white/5">
+            <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Foreground</label>
+              <label class="flex items-center gap-3 bg-[#101014] border border-white/10 rounded-xl h-11 px-3 cursor-pointer hover:border-white/20 transition-colors">
+                <div class="relative w-6 h-6 rounded-full overflow-hidden border border-white/20 shadow-inner">
+                  <input type="color" id="fg" value="#1B2030" class="absolute -top-2 -left-2 w-10 h-10 cursor-pointer">
+                </div>
+                <span id="fgHex" class="font-code-md text-xs text-white/70">#1B2030</span>
+              </label>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Background</label>
+              <label class="flex items-center gap-3 bg-[#101014] border border-white/10 rounded-xl h-11 px-3 cursor-pointer hover:border-white/20 transition-colors">
+                <div class="relative w-6 h-6 rounded-full overflow-hidden border border-white/20 shadow-inner">
+                  <input type="color" id="bg" value="#F4EFE6" class="absolute -top-2 -left-2 w-10 h-10 cursor-pointer">
+                </div>
+                <span id="bgHex" class="font-code-md text-xs text-white/70">#F4EFE6</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: Structure -->
+        <div class="flex flex-col gap-4 bg-white/[0.02] border border-white/10 rounded-2xl p-5 shadow-inner">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-[16px] text-emerald-400">category</span>
+            <h3 class="font-label-sm text-[11px] text-white/60 uppercase tracking-[0.15em] font-semibold">Structure & Brand</h3>
+          </div>
+          
+          <div class="flex flex-col gap-4">
+            <!-- Round Modules Toggle -->
+            <div class="flex items-center justify-between bg-[#101014] border border-white/10 rounded-xl p-3 px-4 hover:border-white/20 transition-colors">
+              <div class="flex flex-col">
+                <span class="font-body-md text-sm text-white/90">Soft Corners</span>
+                <span class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Round Matrix Modules</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="roundMods" class="sr-only peer">
+                <div class="w-10 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/70 peer-checked:after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+              </label>
+            </div>
+
+            <!-- Emblem Toggle & Upload -->
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between bg-[#101014] border border-white/10 rounded-xl p-3 px-4 hover:border-white/20 transition-colors">
+                <div class="flex flex-col">
+                  <span class="font-body-md text-sm text-white/90">Center Emblem</span>
+                  <span class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Geometric Mark or Custom Logo</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="emblem" checked class="sr-only peer">
+                  <div class="w-10 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/70 peer-checked:after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+                </label>
+              </div>
+              
+              <div id="emblem-upload-container" class="flex items-center justify-between bg-[#101014]/50 border border-dashed border-white/20 rounded-xl p-3 px-4 transition-all">
+                <label class="cursor-pointer group flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-colors border border-white/10">
+                    <span class="material-symbols-outlined text-[16px]">cloud_upload</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="font-body-md text-xs text-white/80 group-hover:text-white transition-colors">Upload Custom Logo</span>
+                    <span class="font-label-sm text-[9px] text-white/40 uppercase tracking-widest">PNG, JPG, SVG</span>
+                  </div>
+                  <input type="file" id="emblem-file" accept="image/*" class="hidden">
+                </label>
+                <div id="emblem-preview" class="w-10 h-10 rounded-lg border border-white/10 bg-[#0d0d12] shadow-inner overflow-hidden flex items-center justify-center p-1.5">
+                  <img id="emblem-preview-img" src="/static/logo.png" class="w-full h-full object-contain drop-shadow-md">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: Typography -->
+        <div class="flex flex-col gap-4 bg-white/[0.02] border border-white/10 rounded-2xl p-5 shadow-inner">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-[16px] text-blue-400">text_fields</span>
+            <h3 class="font-label-sm text-[11px] text-white/60 uppercase tracking-[0.15em] font-semibold">Typography Overlays</h3>
+          </div>
+          
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest" for="customText">Custom Message</label>
+              <div class="relative">
+                <input type="text" id="customText" class="w-full bg-[#101014] border border-white/10 hover:border-white/20 text-white font-body-md text-sm rounded-xl h-11 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all placeholder:text-white/30" placeholder="e.g. Scan for menu">
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-2 relative">
+                <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Font Family</label>
+                <div class="relative">
+                  <select id="textFont" class="w-full appearance-none bg-[#101014] border border-white/10 hover:border-white/20 text-white font-body-md text-sm rounded-xl h-11 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer shadow-sm">
+                    <option value="inter">Inter (Modern)</option>
+                    <option value="playfair">Playfair (Elegant)</option>
+                    <option value="caveat">Caveat (Playful)</option>
+                  </select>
+                  <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-[18px]">expand_more</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-2 relative">
+                <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Theme</label>
+                <div class="relative">
+                  <select id="textTheme" class="w-full appearance-none bg-[#101014] border border-white/10 hover:border-white/20 text-white font-body-md text-sm rounded-xl h-11 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer shadow-sm">
+                    <option value="accent">Accent Fill</option>
+                    <option value="dark">Dark Fill</option>
+                    <option value="light">Subtle Light</option>
+                  </select>
+                  <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-[18px]">expand_more</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-[10px] text-white/40 uppercase tracking-widest">Placement Position</label>
+              <div class="grid grid-cols-2 gap-2 bg-[#101014] p-1.5 rounded-xl border border-white/5">
+                <label class="relative flex items-center justify-center cursor-pointer group">
+                  <input type="radio" name="textPos" value="none" checked class="peer sr-only">
+                  <div class="w-full text-center py-2 rounded-lg text-xs font-body-md text-white/50 peer-checked:bg-white/10 peer-checked:text-white peer-checked:shadow-sm transition-all group-hover:text-white/80">Default</div>
+                </label>
+                <label class="relative flex items-center justify-center cursor-pointer group">
+                  <input type="radio" name="textPos" value="bottom" class="peer sr-only">
+                  <div class="w-full text-center py-2 rounded-lg text-xs font-body-md text-white/50 peer-checked:bg-white/10 peer-checked:text-white peer-checked:shadow-sm transition-all group-hover:text-white/80">Footer</div>
+                </label>
+                <label class="relative flex items-center justify-center cursor-pointer group">
+                  <input type="radio" name="textPos" value="top" class="peer sr-only">
+                  <div class="w-full text-center py-2 rounded-lg text-xs font-body-md text-white/50 peer-checked:bg-white/10 peer-checked:text-white peer-checked:shadow-sm transition-all group-hover:text-white/80">Header</div>
+                </label>
+                <label class="relative flex items-center justify-center cursor-pointer group">
+                  <input type="radio" name="textPos" value="pill" class="peer sr-only">
+                  <div class="w-full text-center py-2 rounded-lg text-xs font-body-md text-white/50 peer-checked:bg-white/10 peer-checked:text-white peer-checked:shadow-sm transition-all group-hover:text-white/80">Floating Pill</div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <button id="gen" type="button" class="group isolate inline-flex cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_40px_8px_rgba(129,140,248,0.35)] rounded-full relative shadow-[0_8px_40px_rgba(129,140,248,0.25)] w-full mt-4 h-[56px] border-none" style="--spread: 90deg; --shimmer-color: rgba(255,255,255,0.6); --radius: 9999px; --speed: 4s; --cut: 1px; --bg: rgba(255, 255, 255, 0.05);">
+        <div class="absolute inset-0">
+          <div class="absolute inset-[-200%] w-[400%] h-[400%] [animation:rotate-gradient_var(--speed)_linear_infinite]">
+            <div class="absolute inset-0 [background:conic-gradient(from_calc(270deg-(var(--spread)*0.5)),transparent_0,var(--shimmer-color)_var(--spread),transparent_var(--spread))]">
+            </div>
+          </div>
+        </div>
+        <div class="absolute rounded-full [background:var(--bg)] [inset:var(--cut)] backdrop-blur"></div>
+        <div class="z-10 flex gap-3 overflow-hidden text-base font-medium text-white w-full pt-3 pr-4 pb-3 pl-4 relative gap-x-3 gap-y-3 items-center justify-center" style="border-radius: 9999px;">
+          <div style="position: absolute; content: ' '; display: block; width: 200%; height: 200%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2), transparent); animation: borderBeamRotation 4s infinite linear; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+          <div style="position: absolute; inset: 1px; background: rgba(10, 11, 20, 0.8); border-radius: 9999px; backdrop-filter: blur(8px);"></div>
+          <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/3f6038cb-af1c-4483-97bc-dd58d89c36ef_320w.jpg" alt="Advisor headshot" class="ring-2 ring-white/10 z-10 w-8 h-8 object-cover rounded-full relative">
+          <span class="gen-label whitespace-nowrap relative z-10 font-sans">Generate QR</span>
+          <span class="spinner relative z-10" aria-hidden="true" style="margin-left: 8px;"></span>
+          <span class="gen-label inline-flex items-center justify-center z-10 bg-white/10 w-7 h-7 rounded-full ml-1 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wand-sparkles w-[24px] h-[16px]" style="color: rgb(255, 255, 255);"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"></path><path d="m14 7 3 3"></path><path d="M5 6v4"></path><path d="M19 14v4"></path><path d="M10 2v2"></path><path d="M7 8H3"></path><path d="M21 16h-4"></path><path d="M11 3H9"></path></svg>
+          </span>
+          <style>
+            @keyframes borderBeamRotation {
+              0% { transform: translate(-50%, -50%) rotate(0deg); }
+              100% { transform: translate(-50%, -50%) rotate(360deg); }
+            }
+            @keyframes rotate-gradient {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </div>
+      </button>
+
+      <div id="error" class="error-region mt-2 p-3 rounded bg-err-container border border-err/40 text-err text-sm font-body-md" role="alert"></div>
+
+    </div>
+
+    <!-- Preview Area -->
+    <div class="flex-1 max-w-sm flex flex-col gap-3">
+      <div>
+        <label class="inline-block bg-black/50 backdrop-blur-md border border-white/10 text-white/90 font-bold text-xs uppercase tracking-[0.2em] px-3 py-1.5 rounded-md shadow-sm">Preview</label>
+      </div>
+      
+      <div class="glass-panel border border-dashed border-white/20 rounded-xl aspect-square flex items-center justify-center p-6 relative group transition-all duration-500 hover:border-white/50 hover:shadow-[0_0_35px_rgba(255,255,255,0.1)] animate-[pulse-glow_4s_infinite]">
+        
+        <!-- Placeholder -->
+        <div id="placeholder" class="w-full h-full flex flex-col items-center justify-center gap-4 text-white/50">
+          <span class="material-symbols-outlined text-4xl opacity-50">qr_code_scanner</span>
+          <span class="text-sm font-body-md text-white/70">Your QR will appear here</span>
+        </div>
+
+        <!-- Result -->
+        <img id="preview" alt="Generated QR code" class="w-full h-auto rounded shadow-lg hidden" />
+        
+        <!-- Hover overlay for download actions -->
+        <div id="download-overlay" class="absolute inset-0 bg-black/60 opacity-0 transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-md hidden rounded-xl">
+          <button id="download" class="bg-white/10 border border-white/20 text-primary font-label-sm text-sm px-5 py-2.5 rounded-lg hover:bg-white/20 hover:border-white/40 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all duration-300 flex items-center gap-2 active:scale-95">
+            <span class="material-symbols-outlined text-sm">download</span> Download PNG
+          </button>
+        </div>
+      </div>
+      
+      <div class="flex justify-center mt-2 w-full px-2">
+        <p id="quote-text" class="text-center text-xs text-white/90 font-medium tracking-wide bg-black/60 backdrop-blur-xl px-5 py-2.5 rounded-xl border border-white/20 shadow-xl italic transition-opacity duration-1000 opacity-0">
+          Loading inspiration...
+        </p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const content   = $('content');
+  const genBtn    = $('gen');
+  const preset    = $('preset');
+  const frameStyle = $('frame-style');
+  const customCol = $('customColors');
+  const fgInput   = $('fg');
+  const bgInput   = $('bg');
+  const fgHex     = $('fgHex');
+  const bgHex     = $('bgHex');
+  const roundMods = $('roundMods');
+  const emblem    = $('emblem');
+  const placeholder = $('placeholder');
+  const preview   = $('preview');
+  const download  = $('download');
+  const errorReg  = $('error');
+  const downloadOverlay = $('download-overlay');
+  const emblemFile = $('emblem-file');
+  const emblemPreviewImg = $('emblem-preview-img');
+  const emblemUploadContainer = $('emblem-upload-container');
+  const customText = $('customText');
+  const textFont = $('textFont');
+  const textTheme = $('textTheme');
+
+  function getTextPos() {
+    const el = document.querySelector('input[name="textPos"]:checked');
+    return el ? el.value : 'none';
+  }
+
+  const PRESET_LUT = {
+    hinokami:  { fg:'#1B2030', bg:'#F4EFE6' },
+    muzan:     { fg:'#191919', bg:'#E8E6E1' },
+    urokodaki: { fg:'#16201F', bg:'#EAF0EC' },
+    keepsake:  { fg:'#22222A', bg:'#F2EFE7' },
+    zenitsu:   { fg:'#2B2013', bg:'#F8ECD4' },
+    inosuke:   { fg:'#1C252B', bg:'#E6EEF2' },
+    rengoku:   { fg:'#2D1612', bg:'#F9EAE1' },
+    tengen:    { fg:'#281C2D', bg:'#F4EAF6' },
+    giyu:      { fg:'#17202B', bg:'#E5EEF5' },
+    shinobu:   { fg:'#231B2D', bg:'#F2E8F8' },
+  };
+
+  let currentDataUrl = null;
+  let busy = false;
+
+  function setError(msg){
+    if (!msg){ errorReg.classList.remove('show'); errorReg.textContent=''; return; }
+    errorReg.textContent = msg;
+    errorReg.classList.add('show');
+  }
+
+  function hexText(input, out){
+    input.addEventListener('input', () => { out.textContent = input.value.toUpperCase(); });
+  }
+  hexText(fgInput, fgHex);
+  hexText(bgInput, bgHex);
+
+  function syncPresetUI(){
+    const isCustom = preset.value === 'custom';
+    if(isCustom) {
+      customCol.classList.remove('hidden');
+    } else {
+      customCol.classList.add('hidden');
+    }
+    fgInput.disabled = !isCustom;
+    bgInput.disabled = !isCustom;
+  }
+  preset.addEventListener('change', syncPresetUI);
+  syncPresetUI();
+
+  let emblemDataUrl = null;
+  emblem.addEventListener('change', () => {
+    emblemUploadContainer.style.display = emblem.checked ? 'flex' : 'none';
+  });
+
+  emblemFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(file){
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        emblemDataUrl = ev.target.result;
+        emblemPreviewImg.src = emblemDataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  function currentParams(){
+    const scheme = preset.value;
+    if (scheme === 'custom'){
+      return { scheme, fg: fgInput.value, bg: bgInput.value };
+    }
+    const p = PRESET_LUT[scheme] || PRESET_LUT.hinokami;
+    return { scheme, fg: p.fg, bg: p.bg };
+  }
+
+  async function generate(){
+    if (busy) return;
+    const text = content.value.trim();
+
+    if (!text){
+      setError('Please enter a link or some text to encode.');
+      content.focus();
+      return;
+    }
+    setError('');
+
+    busy = true;
+    genBtn.classList.add('loading');
+    genBtn.disabled = true;
+
+    const params = currentParams();
+    const body = {
+      content: text,
+      scheme: params.scheme,
+      fg: params.fg,
+      bg: params.bg,
+      round: roundMods.checked,
+      emblem: emblem.checked,
+      frame: frameStyle.value,
+      emblem_data_url: emblemDataUrl,
+      ec: 'H',
+      text: customText.value,
+      text_font: textFont.value,
+      text_pos: getTextPos(),
+      text_theme: textTheme.value,
+    };
+
+    try{
+      const res = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      let payload = null;
+      try{ payload = await res.json(); } catch(err){}
+
+      if (res.ok){
+        if (payload && typeof payload.data === 'string'){
+          showResult(payload.data);
+        } else {
+          setError('The server returned an unexpected response.');
+        }
+      } else {
+        const msg = (payload && payload.error) ? payload.error : 'Could not generate QR (' + res.status + ').';
+        setError(msg);
+      }
+    } catch(err){
+      setError('Network error — is the server running?');
+    } finally{
+      busy = false;
+      genBtn.classList.remove('loading');
+      genBtn.disabled = false;
+    }
+  }
+
+  function showResult(dataUrl){
+    currentDataUrl = dataUrl;
+    preview.src = dataUrl;
+    placeholder.classList.add('hidden');
+    preview.classList.remove('hidden');
+    downloadOverlay.classList.remove('hidden');
+    downloadOverlay.classList.add('group-hover:opacity-100');
+  }
+
+  genBtn.addEventListener('click', generate);
+
+  content.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      generate();
+    }
+  });
+
+  download.addEventListener('click', () => {
+    if (!currentDataUrl){ return; }
+    const a = document.createElement('a');
+    a.href = currentDataUrl;
+    a.download = 'kizuna-qr.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const quoteEl = $('quote-text');
+    if (!quoteEl) return;
+    try {
+      const res = await fetch('https://dummyjson.com/quotes/random');
+      const data = await res.json();
+      quoteEl.textContent = `"${data.quote}" — ${data.author}`;
+    } catch (e) {
+      quoteEl.textContent = "Every QR code is a bridge to somewhere new.";
+    }
+    quoteEl.classList.remove('opacity-0');
+  });
+</script>
+
+<!-- WebGL Halftone Flow Script -->
+<script>
+    // --- WebGL Background Animation ---
+    const canvas = document.getElementById('glcanvas');
+    const gl = canvas.getContext('webgl');
+
+    if (!gl) {
+        console.error('WebGL not supported');
+    } else {
+        // Resize handler
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Vertex Shader
+        const vsSource = `
+            attribute vec4 aVertexPosition;
+            void main() {
+                gl_Position = aVertexPosition;
+            }
+        `;
+
+        // Fragment Shader (Halftone Flow)
+        const fsSource = `
+            precision highp float;
+            uniform vec2 u_resolution;
+            uniform float u_time;
+
+            mat2 rot(float a) {
+                float s = sin(a), c = cos(a);
+                return mat2(c, -s, s, c);
+            }
+
+            void main() {
+                vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+                vec2 p = uv * 2.0 - 1.0;
+                p.x *= u_resolution.x / u_resolution.y;
+
+                vec2 flow_uv = p;
+                float time = u_time * 0.4;
+                
+                for(float i = 1.0; i < 4.0; i++) {
+                    flow_uv *= rot(time * 0.1);
+                    flow_uv.x += sin(flow_uv.y * 2.0 * i + time) * 0.5;
+                    flow_uv.y += cos(flow_uv.x * 1.5 * i - time * 0.8) * 0.5;
+                }
+
+                float intensity = sin(flow_uv.x * 2.0 + flow_uv.y * 3.0) * 0.5 + 0.5;
+                
+                vec3 col_dark = vec3(0.02, 0.0, 0.0);
+                vec3 col_red = vec3(0.8, 0.1, 0.05);
+                vec3 col_bright = vec3(1.0, 0.6, 0.2);
+                
+                vec3 fluid_color = mix(col_dark, col_red, smoothstep(0.2, 0.6, intensity));
+                fluid_color = mix(fluid_color, col_bright, smoothstep(0.7, 1.0, intensity));
+
+                float gridSize = 6.0; 
+                vec2 grid_uv = gl_FragCoord.xy / gridSize;
+                vec2 cell_uv = fract(grid_uv) - 0.5;
+                
+                float dist = length(cell_uv);
+                float radius = intensity * 0.45; 
+                float dot_mask = smoothstep(radius, radius - 0.1, dist);
+                
+                vec3 final_color = mix(vec3(0.0), fluid_color, dot_mask);
+                final_color += fluid_color * 0.15;
+
+                gl_FragColor = vec4(final_color, 1.0);
+            }
+        `;
+
+        function compileShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        gl.useProgram(program);
+
+        const positions = new Float32Array([
+            -1.0,  1.0,
+             1.0,  1.0,
+            -1.0, -1.0,
+             1.0, -1.0,
+        ]);
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+        const positionLocation = gl.getAttribLocation(program, "aVertexPosition");
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+        const timeLocation = gl.getUniformLocation(program, "u_time");
+
+        let startTime = Date.now();
+        function render() {
+            gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+            gl.uniform1f(timeLocation, (Date.now() - startTime) / 1000.0);
+            
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            requestAnimationFrame(render);
+        }
+        render();
+    }
+</script>
+
+<!-- Particle Wordmark Engine -->
+<script>
+(function(){
+  const canvas = document.getElementById('wordmark-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  
+  let particles = [];
+  let mouse = { x: -1000, y: -1000, radius: 45 };
+  
+  // Track pointer over the header area
+  const header = canvas.parentElement.parentElement;
+  
+  function updateMouse(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    mouse.x = clientX - rect.left;
+    mouse.y = clientY - rect.top;
+  }
+  
+  header.addEventListener('mousemove', updateMouse);
+  header.addEventListener('touchmove', updateMouse, {passive: true});
+  
+  function clearMouse() {
+    mouse.x = -1000;
+    mouse.y = -1000;
+  }
+  header.addEventListener('mouseleave', clearMouse);
+  header.addEventListener('touchend', clearMouse);
+  header.addEventListener('touchcancel', clearMouse);
+
+  function initParticles() {
+    const isMobile = window.innerWidth < 768;
+    const cw = isMobile ? 180 : 260;
+    const ch = isMobile ? 48 : 64;
+    
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch + 'px';
+    canvas.width = cw * dpr;
+    canvas.height = ch * dpr;
+    
+    const off = document.createElement('canvas');
+    off.width = canvas.width;
+    off.height = canvas.height;
+    const octx = off.getContext('2d', { willReadFrequently: true });
+    
+    octx.fillStyle = 'white';
+    octx.textBaseline = 'middle';
+    
+    const kizSize = isMobile ? 34 * dpr : 46 * dpr;
+    octx.font = `800 ${kizSize}px Geist, sans-serif`;
+    octx.fillText('Kizuna', 0, canvas.height / 2 + (isMobile ? 3 : 4) * dpr);
+    const m = octx.measureText('Kizuna');
+    
+    const qrSize = isMobile ? 34 * dpr : 46 * dpr;
+    octx.font = `300 ${qrSize}px Geist, sans-serif`;
+    octx.fillText('QR', m.width + 6 * dpr, canvas.height / 2 + (isMobile ? 3 : 4) * dpr);
+    
+    const imgData = octx.getImageData(0, 0, canvas.width, canvas.height);
+    const data32 = new Uint32Array(imgData.data.buffer);
+    
+    particles = [];
+    const step = Math.floor(dpr * (isMobile ? 1.5 : 2.0));
+    
+    for (let y = 0; y < canvas.height; y += step) {
+      for (let x = 0; x < canvas.width; x += step) {
+        if (data32[y * canvas.width + x] & 0xff000000) {
+          const progress = x / canvas.width;
+          const r = Math.floor(220 + progress * 35); 
+          const g = Math.floor(220 - progress * 100); 
+          const b = 255;
+          
+          particles.push({
+            x: x + (Math.random() - 0.5) * 60 * dpr, // Start scattered for cool intro
+            y: y + (Math.random() - 0.5) * 60 * dpr,
+            baseX: x,
+            baseY: y,
+            vx: 0,
+            vy: 0,
+            color: `rgba(${r},${g},${b},0.85)`,
+            size: dpr * (isMobile ? 0.8 : 1.2)
+          });
+        }
+      }
+    }
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const dpr = window.devicePixelRatio || 1;
+    const mRadius = mouse.radius * dpr;
+    const mx = mouse.x * dpr;
+    const my = mouse.y * dpr;
+    
+    for (let i = 0; i < particles.length; i++) {
+      let p = particles[i];
+      
+      let dx = mx - p.x;
+      let dy = my - p.y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < mRadius) {
+        let force = (mRadius - dist) / mRadius;
+        let angle = Math.atan2(dy, dx);
+        p.vx -= Math.cos(angle) * force * 1.5 * dpr;
+        p.vy -= Math.sin(angle) * force * 1.5 * dpr;
+      }
+      
+      p.vx += (p.baseX - p.x) * 0.12;
+      p.vy += (p.baseY - p.y) * 0.12;
+      
+      p.vx *= 0.82;
+      p.vy *= 0.82;
+      
+      p.x += p.vx;
+      p.y += p.vy;
+      
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+    }
+    
+    requestAnimationFrame(animateParticles);
+  }
+
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(initParticles, 300);
+  });
+
+  if (document.fonts) {
+    document.fonts.ready.then(() => {
+      initParticles();
+      animateParticles();
+    });
+  } else {
+    setTimeout(() => {
+      initParticles();
+      animateParticles();
+    }, 500);
+  }
+})();
+</script>
+</body>
+</html>

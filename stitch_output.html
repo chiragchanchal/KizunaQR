@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kizuna QR - Generator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Inter:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "outline": "#8e9192",
+              "on-error": "#690005",
+              "on-secondary-fixed": "#131b2f",
+              "error": "#ffb4ab",
+              "surface-container-low": "#1c1b1b",
+              "inverse-on-surface": "#313030",
+              "primary-fixed": "#e2e2e2",
+              "surface": "#141313",
+              "tertiary-container": "#e2e2e2",
+              "surface-container-lowest": "#0e0e0e",
+              "primary-fixed-dim": "#c6c6c7",
+              "surface-container-highest": "#353434",
+              "tertiary-fixed-dim": "#c6c6c7",
+              "secondary-fixed-dim": "#bec6e0",
+              "on-error-container": "#ffdad6",
+              "on-primary": "#2f3131",
+              "on-secondary": "#283045",
+              "on-tertiary-fixed": "#1a1c1c",
+              "inverse-surface": "#e5e2e1",
+              "on-secondary-fixed-variant": "#3e465c",
+              "inverse-primary": "#5d5f5f",
+              "surface-variant": "#353434",
+              "secondary-fixed": "#dae2fd",
+              "surface-tint": "#c6c6c7",
+              "primary": "#ffffff",
+              "on-primary-container": "#636565",
+              "tertiary": "#ffffff",
+              "tertiary-fixed": "#e2e2e2",
+              "surface-dim": "#141313",
+              "on-surface-variant": "#c4c7c8",
+              "on-primary-fixed": "#1a1c1c",
+              "on-primary-fixed-variant": "#454747",
+              "on-surface": "#e5e2e1",
+              "on-tertiary": "#2f3131",
+              "secondary-container": "#3e465c",
+              "surface-bright": "#3a3939",
+              "background": "#141313",
+              "primary-container": "#e2e2e2",
+              "outline-variant": "#444748",
+              "surface-container": "#201f1f",
+              "on-tertiary-container": "#636565",
+              "error-container": "#93000a",
+              "on-secondary-container": "#adb5ce",
+              "secondary": "#bec6e0",
+              "surface-container-high": "#2a2a2a",
+              "on-background": "#e5e2e1",
+              "on-tertiary-fixed-variant": "#454747",
+              
+              "bg-level-0": "#1B2030",
+              "bg-level-1": "#242B3E",
+              "border-subtle": "#323A4F"
+            },
+            "borderRadius": {
+              "DEFAULT": "0.125rem",
+              "lg": "0.25rem",
+              "xl": "0.5rem",
+              "full": "0.75rem"
+            },
+            "spacing": {
+              "space-xs": "4px",
+              "gutter": "24px",
+              "space-lg": "24px",
+              "space-xl": "48px",
+              "space-md": "12px",
+              "container-max": "1200px",
+              "space-sm": "8px"
+            },
+            "fontFamily": {
+              "code-md": ["Geist"],
+              "headline-md": ["Geist"],
+              "body-md": ["Inter"],
+              "headline-lg": ["Geist"],
+              "headline-lg-mobile": ["Geist"],
+              "body-lg": ["Inter"],
+              "label-sm": ["Geist"]
+            },
+            "fontSize": {
+              "code-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+              "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+              "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+              "headline-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+              "headline-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+              "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+              "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #1B2030;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        .custom-focus-ring:focus-within {
+            outline: 2px solid #ffffff;
+            outline-offset: 2px;
+            border-color: transparent;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .accordion-content.expanded {
+            max-height: 200px; /* Arbitrary large value for demo */
+        }
+        
+        .bg-level-1 { background-color: #242B3E; }
+        .border-subtle { border-color: #323A4F; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased min-h-screen flex flex-col pt-16 pb-20 md:pb-0">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 border-b border-outline-variant bg-surface-dim flex justify-between items-center px-gutter h-16 max-w-container-max mx-auto md:px-space-xl">
+<button class="text-primary hover:bg-surface-container-high transition-colors duration-150 p-2 rounded-full active:opacity-80 active:scale-95 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="qr_code_2">qr_code_2</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold tracking-tight text-primary">Kizuna</h1>
+<button class="text-primary hover:bg-surface-container-high transition-colors duration-150 p-2 rounded-full active:opacity-80 active:scale-95 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="settings">settings</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-grow flex flex-col items-center justify-center p-4 md:p-gutter max-w-container-max mx-auto w-full gap-space-xl">
+<div class="w-full max-w-2xl flex flex-col md:flex-row gap-space-lg">
+<!-- Generator Card -->
+<div class="flex-1 bg-level-1 border border-subtle rounded-lg p-gutter flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest" for="qr-content">Content</label>
+<div class="relative custom-focus-ring rounded bg-bg-level-0 border border-subtle">
+<textarea class="w-full bg-transparent border-none text-primary font-body-md p-space-md focus:ring-0 resize-none placeholder:text-on-surface-variant placeholder:opacity-50" id="qr-content" placeholder="https://example.com or plain text..." rows="4"></textarea>
+</div>
+</div>
+<!-- Accordion: Customize Style -->
+<div class="border border-subtle rounded bg-bg-level-0 overflow-hidden">
+<button class="w-full flex justify-between items-center p-space-md hover:bg-surface-container-high transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg-level-0" id="accordion-toggle">
+<span class="font-label-sm text-label-sm text-primary">Customize Style</span>
+<span class="material-symbols-outlined text-primary transition-transform duration-300" id="accordion-icon">expand_more</span>
+</button>
+<div class="accordion-content bg-bg-level-0 border-t border-subtle px-space-md pb-space-md pt-space-xs flex flex-col gap-space-sm" id="accordion-content">
+<div>
+<label class="font-label-sm text-label-sm text-on-surface-variant mb-1 block">Color Scheme</label>
+<div class="flex gap-space-sm">
+<button aria-label="White/Black theme" class="w-8 h-8 rounded-full bg-white border border-subtle focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg-level-0"></button>
+<button aria-label="Blue theme" class="w-8 h-8 rounded-full bg-blue-500 border border-subtle focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg-level-0"></button>
+<button aria-label="Green theme" class="w-8 h-8 rounded-full bg-emerald-500 border border-subtle focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-bg-level-0"></button>
+</div>
+</div>
+<div>
+<label class="font-label-sm text-label-sm text-on-surface-variant mb-1 block">Corner Style</label>
+<select class="w-full bg-level-1 border border-subtle text-primary font-body-md rounded p-space-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+<option>Square</option>
+<option>Rounded</option>
+<option>Dots</option>
+</select>
+</div>
+</div>
+</div>
+<button class="bg-primary text-on-primary font-label-sm text-label-sm px-gutter py-space-md rounded hover:bg-gray-100 transition-colors duration-150 active:scale-95 active:opacity-90 w-full md:w-auto self-end mt-auto">
+                    Generate
+                </button>
+</div>
+<!-- Preview Area -->
+<div class="flex-1 md:max-w-xs flex flex-col gap-space-md">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest px-2">Preview</label>
+<div class="bg-level-1 border border-dashed border-subtle rounded-lg aspect-square flex items-center justify-center p-space-lg relative overflow-hidden group">
+<!-- Placeholder for the QR Code -->
+<div class="w-full h-full bg-white rounded flex items-center justify-center p-4">
+<div class="w-full h-full bg-gray-200 grid grid-cols-5 grid-rows-5 gap-1 opacity-20">
+<!-- Abstract QR pattern representation -->
+<div class="bg-black col-span-2 row-span-2"></div>
+<div class="bg-black col-start-4 col-span-2 row-span-2"></div>
+<div class="bg-black col-span-2 row-start-4 row-span-2"></div>
+<div class="bg-black col-start-3 row-start-3"></div>
+<div class="bg-black col-start-4 row-start-4"></div>
+<div class="bg-black col-start-5 row-start-5"></div>
+</div>
+</div>
+<!-- Hover overlay for download actions -->
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-space-sm backdrop-blur-sm">
+<button class="bg-bg-level-0 border border-subtle text-primary font-label-sm text-label-sm px-4 py-2 rounded hover:bg-level-1 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">download</span> PNG
+                        </button>
+<button class="bg-bg-level-0 border border-subtle text-primary font-label-sm text-label-sm px-4 py-2 rounded hover:bg-level-1 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">download</span> SVG
+                        </button>
+</div>
+</div>
+<div class="flex justify-center gap-2 mt-2">
+<span class="bg-bg-level-0 border border-subtle text-on-surface-variant font-code-md text-[12px] px-2 py-1 rounded">PNG</span>
+<span class="bg-bg-level-0 border border-subtle text-on-surface-variant font-code-md text-[12px] px-2 py-1 rounded">SVG</span>
+<span class="bg-bg-level-0 border border-subtle text-on-surface-variant font-code-md text-[12px] px-2 py-1 rounded">WEBP</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 border-t border-outline-variant bg-surface-container flex justify-around items-center h-20 px-4 pb-safe">
+<!-- Active Tab: Create -->
+<button class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-xl px-4 py-1.5 hover:text-primary active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="add_box" data-weight="fill">add_box</span>
+<span class="font-label-sm text-label-sm mt-1">Create</span>
+</button>
+<!-- Inactive Tab: History -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1.5 hover:text-primary hover:bg-surface-container-high rounded-xl active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-sm text-label-sm mt-1">History</span>
+</button>
+<!-- Inactive Tab: Settings -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1.5 hover:text-primary hover:bg-surface-container-high rounded-xl active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="settings_gear">file_export</span>
+<span class="font-label-sm text-label-sm mt-1">Settings</span>
+</button>
+</nav>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('accordion-toggle');
+            const content = document.getElementById('accordion-content');
+            const icon = document.getElementById('accordion-icon');
+
+            toggle.addEventListener('click', () => {
+                const isExpanded = content.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    content.classList.remove('expanded');
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    content.classList.add('expanded');
+                    icon.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+    </script>
+</body></html>
