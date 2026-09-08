@@ -262,6 +262,13 @@ def render_qr(content, scheme="hinokami", fg=None, bg=None, round_mods=False,
                             font = ImageFont.truetype("arial.ttf", size=font_size)
                         except IOError:
                             font = ImageFont.load_default()
+                            try:
+                                left, top, right, bottom = font.getbbox(text_to_draw)
+                                tw = right - left
+                                th = bottom - top
+                            except Exception:
+                                tw = margin * 2
+                                th = banner_h // 2
                             break
                         left, top, right, bottom = font.getbbox(text_to_draw)
                         tw = right - left
@@ -402,6 +409,13 @@ def _draw_custom_text(img, text, text_font, text_pos, text_theme, core_size, fg,
                 font = ImageFont.truetype("arial.ttf", size=fontsize)
             except IOError:
                 font = ImageFont.load_default()
+                try:
+                    left, top, right, bottom = font.getbbox(text)
+                    tw = right - left
+                    th = bottom - top
+                except Exception:
+                    tw = len(text) * 6
+                    th = 12
                 break
                 
         left, top, right, bottom = font.getbbox(text)

@@ -73,6 +73,8 @@ def generate(req: GenerateRequest) -> JSONResponse:
     except ValueError as exc:
         return JSONResponse(status_code=400, content={"error": str(exc)})
     except Exception as exc:  # noqa: BLE001 -- never crash, return 500
+        import traceback
+        traceback.print_exc()
         return JSONResponse(status_code=500, content={"error": "server error"})
 
     b64 = base64.b64encode(png).decode("ascii")
