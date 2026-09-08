@@ -248,8 +248,33 @@ def render_qr(content, scheme="hinokami", fg=None, bg=None, round_mods=False,
             
             if frame == "scan_me":
                 fd.rounded_rectangle([pad, pad, framed_size - pad, framed_size - pad], radius=margin//2, outline=_fg, width=bw)
-                banner_w = margin * 3
                 banner_h = int(margin * 0.8)
+                text_to_draw = text if text and text.strip() else "SCAN ME"
+                
+                try:
+                    from PIL import ImageFont
+                    font_size = int(banner_h * 0.6)
+                    while True:
+                        try:
+                            font = ImageFont.truetype("arial.ttf", size=font_size)
+                        except IOError:
+                            font = ImageFont.load_default()
+                            break
+                        left, top, right, bottom = font.getbbox(text_to_draw)
+                        tw = right - left
+                        th = bottom - top
+                        if tw <= (framed_size - pad * 4) or font_size <= 12:
+                            break
+                        font_size -= 2
+                except Exception:
+                    tw = margin * 2
+                    th = banner_h // 2
+                    font = None
+
+                banner_w = max(margin * 3, tw + int(margin * 0.8))
+                if banner_w > framed_size - pad * 2:
+                    banner_w = framed_size - pad * 2
+                    
                 banner_x0 = framed_size // 2 - banner_w // 2
                 banner_y0 = framed_size - pad - banner_h // 2
                 banner_x1 = framed_size // 2 + banner_w // 2
@@ -260,19 +285,9 @@ def render_qr(content, scheme="hinokami", fg=None, bg=None, round_mods=False,
                 fd.polygon([(banner_x0, tail_y), (banner_x0 - tail_w, banner_y1), (banner_x0, banner_y1)], fill=_fg)
                 fd.polygon([(banner_x1, tail_y), (banner_x1 + tail_w, banner_y1), (banner_x1, banner_y1)], fill=_fg)
                 fd.rounded_rectangle([banner_x0, banner_y0, banner_x1, banner_y1], radius=max(2, int(margin*0.1)), fill=_accent)
-                try:
-                    from PIL import ImageFont
-                    try:
-                        font = ImageFont.truetype("arial.ttf", size=int(banner_h * 0.6))
-                    except IOError:
-                        font = ImageFont.load_default()
-                    text_to_draw = text if text and text.strip() else "SCAN ME"
-                    left, top, right, bottom = font.getbbox(text_to_draw)
-                    tw = right - left
-                    th = bottom - top
+                
+                if font:
                     fd.text((framed_size//2 - tw//2, banner_y0 + (banner_h - th)//2 - int(banner_h*0.1)), text_to_draw, font=font, fill=_bg)
-                except Exception:
-                    pass
 
             elif frame == "viewfinder":
                 L = margin * 1.5
@@ -373,18 +388,27 @@ def _draw_custom_text(img, text, text_font, text_pos, text_theme, core_size, fg,
     }
     font_filename = font_files.get(text_font, "arial.ttf")
     
-    fontsize = max(24, int(core_size * 0.06))
-    try:
-        font = ImageFont.truetype(font_filename, size=fontsize)
-    except IOError:
+    w, h = img.size
+    fontsize = max(36, int(core_size * 0.11))
+    
+    while True:
         try:
-            font = ImageFont.truetype("arial.ttf", size=fontsize)
+            font = ImageFont.truetype(font_filename, size=fontsize)
         except IOError:
-            font = ImageFont.load_default()
-            
-    left, top, right, bottom = font.getbbox(text)
-    tw = right - left
-    th = bottom - top
+            try:
+                font = ImageFont.truetype("arial.ttf", size=fontsize)
+            except IOError:
+                font = ImageFont.load_default()
+                break
+                
+        left, top, right, bottom = font.getbbox(text)
+        tw = right - left
+        th = bottom - top
+        
+        max_w = w * 0.85 if text_pos == "pill" else w * 0.95
+        if tw <= max_w or fontsize <= 14:
+            break
+        fontsize -= 4
     
     if text_theme == "accent":
         box_bg = accent
